@@ -1,0 +1,20 @@
+{
+  "repository": "kshakirov/pg-ray",
+  "repository_url": "https://github.com/kshakirov/pg-ray",
+  "retrieved_at": "2026-09-01T03:33:43Z",
+  "default_branch": "main",
+  "issues": {
+    "scope": "all",
+    "limit": 100,
+    "total": 1,
+    "open": 1,
+    "closed": 0,
+    "comments": 2,
+    "last_updated_at": "2026-09-01T03:33:33Z"
+  },
+  "wiki": {
+    "enabled": true,
+    "initialized": false,
+    "pages": 0
+  }
+}

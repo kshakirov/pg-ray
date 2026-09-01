@@ -51,7 +51,7 @@ pub async fn fetch_table_meta(client: &Client) -> Result<Vec<TableMeta>, Error> 
         WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
           AND n.nspname NOT LIKE 'pg_toast%'
           AND c.relkind = 'r'
-        ORDER BY c.relname, s.attname;
+        ORDER BY c.relname, s.attname limit 2;
     ";
 
     let rows = client.query(query, &[]).await?;
