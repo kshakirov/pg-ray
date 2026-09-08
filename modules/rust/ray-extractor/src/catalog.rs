@@ -27,11 +27,13 @@ pub struct ColumnStats {
     /// Мощность/число уникальных значений (n_distinct).
     /// > 0: абсолютное число уников; < 0: отрицательная доля от общего N.
     pub n_distinct: f32,
+
+    pub mcv: Option<Vec<String>>,
+    pub mcf: Option<Vec<f32>>,
 }
 
-
-use tokio_postgres::{Client, Error};
 use std::collections::HashMap;
+use tokio_postgres::{Client, Error};
 
 pub async fn fetch_table_meta(client: &Client) -> Result<Vec<TableMeta>, Error> {
     let query = "
@@ -44,14 +46,24 @@ pub async fn fetch_table_meta(client: &Client) -> Result<Vec<TableMeta>, Error> 
             COALESCE(s.attname, '')::text AS column_name,
             COALESCE(s.null_frac, 0.0)::real AS null_frac,
             COALESCE(s.avg_width, 0)::integer AS avg_width,
-            COALESCE(s.n_distinct, 0.0)::real AS n_distinct
+            COALESCE(s.n_distinct, 0.0)::real AS n_distinct,
+         
+          CASE
+              WHEN s.most_common_vals IS NULL THEN NULL
+          ELSE ARRAY(
+         SELECT jsonb_array_elements_text(
+            to_jsonb(s.most_common_vals)
+        )
+    )
+END AS mcv,
+           s.most_common_freqs as mcf
         FROM pg_class c
         JOIN pg_namespace n ON n.oid = c.relnamespace
         LEFT JOIN pg_stats s ON s.tablename = c.relname AND s.schemaname = n.nspname
         WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
           AND n.nspname NOT LIKE 'pg_toast%'
           AND c.relkind = 'r'
-        ORDER BY c.relname, s.attname limit 2;
+        ORDER BY c.relname, s.attname limit 10;
     ";
 
     let rows = client.query(query, &[]).await?;
@@ -77,6 +89,8 @@ pub async fn fetch_table_meta(client: &Client) -> Result<Vec<TableMeta>, Error> 
                 null_frac: row.get("null_frac"),
                 avg_width: row.get("avg_width"),
                 n_distinct: row.get("n_distinct"),
+                mcv: row.get("mcv"),
+                mcf: row.get("mcf"),
             });
         }
     }
