@@ -46,25 +46,9 @@ async fn main() -> Result<(), Error> {
 
             match something {
                 Ok(vec) => {
-                    println!("Результат: {:#?}", vec.len());
-                    for table in vec {
-                        println!("Processing Table [{}]", table.table_name);
-                        let cols = table.columns;
-                        for cc in cols {
-                            if cc.mcf.is_some() {
-                                println!("\t Column[{}]", cc.column_name);
-                                let v = cc.mcf.iter().fold(0.0, |acc, f| {
-                                    acc + f.iter().fold(0.0, |aacc, ff| aacc + ff)
-                                });
-                                println!(
-                                    "The frequency is {:#?} the other probability is {} ",
-                                    v,
-                                    1.0 - v
-                                );
-                            }
-                        }
-                    }
-                    //compute_prob();
+                    println!("Результат: {:#?} таблиц", vec.len());
+
+                    compute_prob(vec);
                 }
                 Err(err) => {
                     eprintln!("Подробная ошибка БД: {}", err);
