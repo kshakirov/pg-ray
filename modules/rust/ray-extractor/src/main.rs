@@ -2,7 +2,7 @@ use std::process::exit;
 
 use tokio_postgres::{Error, NoTls};
 
-use crate::catalog::{fetch_table_meta, ColumnStats, TableMeta};
+use crate::catalog::{TableMeta, fetch_table_meta};
 mod catalog;
 
 fn compute_prob(tables: Vec<TableMeta>) {
@@ -13,14 +13,16 @@ fn compute_prob(tables: Vec<TableMeta>) {
         for cc in cols {
             if cc.mcf.is_some() {
                 println!("\t Column[{}]", cc.column_name);
+                let null_frac = cc.null_frac;
                 let v = cc
                     .mcf
                     .iter()
                     .fold(0.0, |acc, f| acc + f.iter().fold(0.0, |aacc, ff| aacc + ff));
                 println!(
-                    "The frequency is {:#?} the other probability is {} ",
+                    "The frequency is {:#?}, the null_frac is {}, the other probability is {} ",
                     v,
-                    1.0 - v
+                    null_frac,
+                    1.0 - v - null_frac
                 );
             }
         }
