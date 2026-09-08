@@ -2,11 +2,29 @@ use std::process::exit;
 
 use tokio_postgres::{Error, NoTls};
 
-use crate::catalog::{fetch_table_meta, ColumnStats};
+use crate::catalog::{fetch_table_meta, ColumnStats, TableMeta};
 mod catalog;
 
-fn compute_prob(freqs: Vec<Vec<f32>>) {
+fn compute_prob(tables: Vec<TableMeta>) {
     print!("Computing the probability...\n");
+    for table in tables {
+        println!("Processing Table [{}]", table.table_name);
+        let cols = table.columns;
+        for cc in cols {
+            if cc.mcf.is_some() {
+                println!("\t Column[{}]", cc.column_name);
+                let v = cc
+                    .mcf
+                    .iter()
+                    .fold(0.0, |acc, f| acc + f.iter().fold(0.0, |aacc, ff| aacc + ff));
+                println!(
+                    "The frequency is {:#?} the other probability is {} ",
+                    v,
+                    1.0 - v
+                );
+            }
+        }
+    }
 }
 #[tokio::main]
 async fn main() -> Result<(), Error> {
