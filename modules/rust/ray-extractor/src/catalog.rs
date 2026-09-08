@@ -56,7 +56,8 @@ pub async fn fetch_table_meta(client: &Client) -> Result<Vec<TableMeta>, Error> 
         )
     )
 END AS mcv,
-           s.most_common_freqs as mcf
+           s.most_common_freqs as mcf,
+s.null_frac as null_frac
         FROM pg_class c
         JOIN pg_namespace n ON n.oid = c.relnamespace
         LEFT JOIN pg_stats s ON s.tablename = c.relname AND s.schemaname = n.nspname
