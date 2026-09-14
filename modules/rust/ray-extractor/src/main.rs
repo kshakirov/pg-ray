@@ -2,7 +2,7 @@ use std::process::exit;
 
 use tokio_postgres::{Error, NoTls};
 
-use crate::catalog::{TableMeta, fetch_table_meta};
+use crate::catalog::{fetch_table_meta, get_mcf_by_mcv, TableMeta};
 mod catalog;
 
 fn compute_prob(tables: Vec<TableMeta>) {
@@ -45,6 +45,8 @@ async fn main() -> Result<(), Error> {
             });
             let result = fetch_table_meta(&client);
             let something = result.await;
+            let result_2 = get_mcf_by_mcv(&client, &"olivia");
+            let freq = result_2.await;
 
             match something {
                 Ok(vec) => {
@@ -56,10 +58,17 @@ async fn main() -> Result<(), Error> {
                     eprintln!("Подробная ошибка БД: {}", err);
                 }
             }
+            match freq {
+                Ok(f) => {
+                    println!("The freq is {}\n", f)
+                }
+                Err(err) => {
+                    eprintln!("Подробная ошибка БД: {}", err);
+                }
+            }
         }
         Err(err) => {
-            eprint!("No such a var {}\n", err);
-            exit(-1);
+            eprintln!("Подробная ошибка БД: {}", err);
         }
     }
 

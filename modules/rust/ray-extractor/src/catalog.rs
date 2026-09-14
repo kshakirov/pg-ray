@@ -98,3 +98,28 @@ END AS mcv,
 
     Ok(tables_map.into_values().collect())
 }
+
+pub async fn get_mcf_by_mcv(client: &Client, mcv: &str) -> Result<f64, Error> {
+    let query = format!(
+        "
+with sel_idx as (
+select idx from (
+SELECT 
+    t.elem as name, 
+    t.ord as idx
+FROM pg_stats s,
+     jsonb_array_elements_text(to_jsonb(s.most_common_vals)) WITH ORDINALITY AS t(elem, ord)
+WHERE s.tablename = 'account' 
+  AND s.attname = 'first_name'
+  ) where name = '{}'
+ )
+select (to_jsonb(most_common_freqs)->> (select idx from sel_idx)::int)::float as idx  FROM pg_stats 
+WHERE tablename = 'account' AND attname = 'first_name'
+
+",
+        mcv
+    );
+    let row = client.query_one(&query, &[]).await?;
+    let result: f64 = row.get("idx");
+    Ok(result)
+}
